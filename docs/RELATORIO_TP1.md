@@ -189,75 +189,96 @@ continua sendo retornado, e o campo `profile.status` informa a condição real.
 
 ## 9.1. Empacotamento e execução em containers
 
-Os quatro módulos são construídos por um `Dockerfile` único, parametrizado pelo módulo — não há
-quatro arquivos quase idênticos a manter em sincronia. O build é multi-stage: um estágio compila com
-Maven e JDK, e a imagem final carrega apenas o JRE Alpine e o jar. O compilador não sobrevive ao
-empacotamento, e cada binário ausente é uma superfície de ataque a menos.
+Os quatro módulos são construídos a partir de um único `Dockerfile`, parametrizado pelo nome do
+módulo, o que dispensa a manutenção de quatro arquivos praticamente idênticos. A construção é
+multi-stage: um estágio compila a aplicação com Maven e JDK, e a imagem final contém apenas o JRE
+Alpine e o artefato gerado. O compilador e o código-fonte não integram a imagem distribuída,
+reduzindo tanto o tamanho quanto a superfície de ataque.
 
 Três decisões de segurança acompanham o empacotamento:
 
-- **Processo sem privilégio.** Os containers rodam como usuário não-root criado na imagem.
-- **Portas restritas ao loopback.** As seis portas são publicadas em `127.0.0.1`, não em `0.0.0.0`.
-  A forma padrão do Docker exporia os bancos a qualquer máquina da rede local.
-- **Faixa dedicada `18xxx`.** Evita colisão com outros serviços na máquina de desenvolvimento.
+- **Execução sem privilégio de root.** Os containers executam sob usuário sem privilégios, criado
+  durante a construção da imagem.
+- **Portas restritas ao endereço de loopback.** As seis portas são publicadas em `127.0.0.1`. A
+  forma padrão do Docker publica em `0.0.0.0`, tornando os bancos de dados acessíveis a qualquer
+  máquina da rede local.
+- **Faixa de portas dedicada (`18xxx`).** Evita colisão com outros serviços em execução na máquina
+  de desenvolvimento.
 
-A JVM recebe `-XX:MaxRAMPercentage=75`: sem isso ela dimensiona o heap pela memória do hospedeiro,
-ignora o limite do container e é encerrada por falta de memória.
+A JVM é iniciada com `-XX:MaxRAMPercentage=75`. Sem esse parâmetro, o dimensionamento da heap toma
+como referência a memória do hospedeiro, ignora o limite imposto ao container e resulta em
+encerramento por esgotamento de memória.
 
-## 9.2. Três defeitos que só a execução real revelou
 
-A verificação em execução expôs três defeitos que a compilação e os testes unitários não
-alcançavam. Todos são característicos da migração para o Spring Boot 4, e os três falhavam em
-silêncio — sem erro de compilação, sem aviso em log:
+## 9.2. Defeitos identificados na validação em execução
 
-**A propriedade do MongoDB estava sendo ignorada.** O projeto usava `spring.data.mongodb.uri`, que
-foi depreciada com nível `error` no Boot 4.0 e substituída por `spring.mongodb.uri`. O Spring a
-descartava em silêncio e caía no default `mongodb://localhost/test`. Como o valor configurado
-localmente também apontava para `localhost`, o resultado coincidia com o default e o defeito era
-invisível. Só apareceu quando o host passou a ser `mongo`, dentro da rede do Compose.
+A verificação com o ambiente completo em funcionamento expôs três defeitos que a compilação e os
+testes unitários não alcançavam. Os três decorrem da migração para o Spring Boot 4 e apresentam a
+mesma característica: falham sem emitir erro de compilação, exceção ou registro em log.
 
-**O `@LoadBalanced` capturava o transporte do Eureka.** O `RestClient.Builder` balanceado era o
-único bean desse tipo no contexto, então o auto-configure do Spring Boot recuava e o próprio cliente
-do Eureka o adotava — tentando resolver `discovery-server` pelo LoadBalancer, que depende do Eureka.
-Referência circular: o `project-service` não se registrava e nenhuma chamada por nome lógico
-funcionava. O disfarce era perfeito, porque a falha caía no fallback e devolvia `UNAVAILABLE`, que é
-exatamente o comportamento esperado quando o serviço remoto está fora. A correção declara um builder
-comum `@Primary` para quem injeta sem qualificador, mantendo o balanceado acessível via
-`@LoadBalanced`, que é um qualificador.
+**Propriedade de configuração do MongoDB ignorada.** A aplicação utilizava
+`spring.data.mongodb.uri`, propriedade depreciada com nível `error` no Spring Boot 4.0 e substituída
+por `spring.mongodb.uri`. O framework a descartava sem aviso e adotava o valor padrão
+`mongodb://localhost/test`. Como a configuração local também apontava para `localhost`, o resultado
+coincidia com o padrão e o defeito permanecia indetectável. Manifestou-se apenas quando o endereço
+do banco passou a ser o nome do serviço na rede de containers.
 
-**O `@CircuitBreaker` era uma anotação inerte.** O Spring Boot 4 removeu `spring-boot-starter-aop`
-do seu BOM. Sem `aspectjweaver` no classpath, o aspecto que implementa a anotação nunca é criado:
-o método executa desprotegido, o fallback jamais é chamado e a exceção sobe até o controller. Com o
-`profile-service` interrompido, a rota devolvia `500` em vez de degradar. O código compilava, subia
-e não emitia aviso algum — a anotação simplesmente não fazia nada.
+**Cliente balanceado assumindo o transporte do Discovery Server.** O `RestClient.Builder` anotado
+com `@LoadBalanced` era o único bean desse tipo no contexto da aplicação. A configuração automática
+do Spring Boot, condicionada à ausência de um bean equivalente, deixava de fornecer o builder
+padrão, e o cliente do Eureka passava a utilizar o balanceado — tentando resolver o endereço do
+Discovery Server por meio do balanceador de carga, que depende do próprio Eureka. A referência
+circular impedia o registro do `project-service` e inviabilizava qualquer chamada por nome lógico.
+A falha era mascarada pelo mecanismo de fallback, que retornava `UNAVAILABLE`, resposta idêntica à
+esperada quando o serviço remoto está legitimamente fora do ar. A correção consiste em declarar um
+builder comum anotado com `@Primary`, destinado às injeções sem qualificador, mantendo o balanceado
+acessível por meio do qualificador `@LoadBalanced`.
 
-O segundo e o terceiro casos são os mais instrutivos da entrega: um mecanismo de resiliência bem construído pode
-esconder uma falha de configuração, porque degradar com elegância e estar quebrado produzem a mesma
-resposta. Só a verificação em execução real distingue os dois.
+**Anotação de Circuit Breaker sem efeito.** O Spring Boot 4 removeu o artefato
+`spring-boot-starter-aop` de sua lista de dependências gerenciadas. Sem `aspectjweaver` no
+classpath, o aspecto que implementa `@CircuitBreaker` não é instanciado: o método executa
+desprotegido, o fallback não é acionado e a exceção propaga-se até o controlador. Com o
+`profile-service` interrompido, a rota de detalhes retornava `500` em vez de degradar. A anotação
+permanecia no código sem produzir qualquer efeito.
 
-## 10. Cobertura da rúbrica
+Os dois últimos casos ilustram uma limitação relevante da verificação estática em arquiteturas
+distribuídas: um mecanismo de resiliência bem construído pode ocultar uma falha de configuração,
+uma vez que degradar corretamente e estar inoperante produzem a mesma resposta observável. A
+distinção entre os dois estados só é possível mediante execução real.
 
-| Critério | Como o projeto atende | Situação atual |
-|---|---|---|
-| Arquitetura distribuída | Diagrama e documentação de Gateway, Eureka e dois serviços de domínio | ✅ Documentado |
-| Tema e granularidade | Perfil e projetos são contextos separados e justificáveis | ✅ Documentado |
-| Ecossistema funcional | Seis containers com healthcheck encadeado | ✅ Figuras 1, 2 e 9 |
-| Cloud-native/escalabilidade | Configurações externalizadas e descoberta dinâmica | ✅ Validado em execução |
-| Isolamento de estado | `profile_db` e `project_db`, sem acesso cruzado | ✅ Configurado |
-| Serviços independentes | Faixa dedicada 18xxx, só em loopback | ✅ Validado em execução |
-| Resiliência | Timeout, Circuit Breaker e fallback com três estados | ✅ Figuras 5, 6 e 7 |
-| Gateway | Rotas públicas para perfil e projeto | ✅ Figuras 3, 4 e 5 |
-| API REST | DTOs, validação e endpoints de domínio | ✅ Implementado |
-| Testes | Unitários dos dois serviços + comportamento de fallback | ✅ 12 testes — Figura 8 |
-| Decisões arquiteturais | ADRs de persistência, resiliência e discovery/gateway | ✅ `docs/adr/` |
-| Repositório e README | Estrutura e instruções presentes | ⏳ publicar repositório |
-| Evidências visuais | Nove capturas em `docs/evidences/` | ✅ Figuras 1 a 9 |
 
-## 11. Pendências para conclusão
+## 10. Cobertura dos critérios de avaliação
 
-1. Exportar o documento da proposta para PDF.
-2. Publicar o repositório Git com o README de execução.
+| Critério | Onde se comprova |
+|---|---|
+| Arquitetura distribuída documentada | §3 e diagrama · `docs/adr/003-discovery-gateway.md` |
+| Tema justificado e granularidade avaliada | §2 e §4 · `docs/adr/001-persistencia-poliglota.md` |
+| Ecossistema funcional | Figuras 1, 2 e 9 |
+| Escalabilidade e características cloud-native | §3, subseção "Escalabilidade e características cloud-native" |
+| Isolamento de estado | §4 · `docker-compose.yml` · ADR 001 |
+| Serviços independentes e configuração externalizada | §3 e §9.1 · `application.yml` de cada módulo |
+| Resiliência com comportamento documentado | §6 · ADR 002 · Figuras 5, 6 e 7 |
+| Gateway como ponto único de entrada | §5 · Figuras 3, 4 e 5 |
+| Repositório com README reproduzível | `README.md` · repositório publicado |
+| Autonomia de execução local | §9.1 · Figura 9 |
+| Endpoints REST com banco justificado | §5 · ADR 001 |
+| Validação com requisições e evidências visuais | Coleção `http/` · Figuras 1 a 9 |
 
-## 12. Conclusão
+## 11. Conclusão
 
-O PortfolioHub apresenta uma base coerente para a Entrega 1: dois microservices de domínio, bancos logicamente isolados, Discovery Server, API Gateway e uma estratégia explícita de resiliência. A qualidade da entrega final dependerá da validação real, das evidências anexadas e das instruções de execução reproduzíveis no repositório.
+O PortfolioHub entrega uma arquitetura distribuída funcional e verificada em execução: dois
+microservices de domínio com bancos logicamente isolados, Discovery Server, API Gateway como
+fronteira única de entrada e uma estratégia de resiliência que distingue três condições operacionais
+— serviço disponível, referência inexistente e serviço indisponível.
+
+A contribuição mais relevante do trabalho, além da arquitetura proposta, foi o que a validação em
+execução revelou. Três defeitos atravessaram a compilação e os testes unitários sem produzir erro,
+aviso ou registro em log, conforme detalhado em §9.2. Todos decorrem de alterações introduzidas pelo
+Spring Boot 4 — propriedades depreciadas, mudanças na configuração automática e artefatos removidos
+da lista de dependências gerenciadas.
+
+O caso do Circuit Breaker é o mais ilustrativo. Com a anotação inoperante, a rota de detalhes
+retornava `500` diante da indisponibilidade do serviço remoto; corrigido o defeito, passou a
+retornar `200` com o estado `UNAVAILABLE`. A distinção entre um sistema que degrada corretamente e
+um sistema inoperante não é observável no código-fonte, apenas em execução — constatação que
+justifica o peso atribuído às evidências de runtime nesta entrega.

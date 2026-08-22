@@ -16,7 +16,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-profile--db-4169E1?style=flat-square&logo=postgresql&logoColor=white)](#-persistência-poliglota)
 [![MongoDB](https://img.shields.io/badge/MongoDB-project--db-47A248?style=flat-square&logo=mongodb&logoColor=white)](#-persistência-poliglota)
 [![License](https://img.shields.io/badge/license-source%20available-8957e5?style=flat-square)](LICENSE)
-[![Status](https://img.shields.io/badge/status-em%20desenvolvimento-F59E0B?style=flat-square)](#-status-da-entrega)
+[![Status](https://img.shields.io/badge/status-entregue-2EA043?style=flat-square)](#-evidências-de-execução)
 
 <br/>
 
@@ -37,7 +37,7 @@
 7. [Como executar](#-como-executar)
 8. [Referência da API](#-referência-da-api)
 9. [Resiliência](#-resiliência)
-10. [Evidências e status](#-status-da-entrega)
+10. [Evidências de execução](#-evidências-de-execução)
 11. [Estrutura](#-estrutura-do-projeto)
 12. [Relatório técnico](#-relatório-técnico)
 
@@ -49,9 +49,14 @@ O **PortfolioHub** organiza um perfil profissional e o catálogo de projetos té
 
 O domínio foi dividido em dois contextos claros: **perfil profissional**, com dados estruturados e estáveis; e **portfólio de projetos**, com tecnologias, links e metadados naturalmente variáveis. Cada serviço é dono dos próprios dados e se comunica somente por contratos HTTP.
 
-> **Bloco:** Engenharia de Softwares Escaláveis · **Disciplina:** Microsserviços e DevOps com Spring Boot e Spring Cloud [26E3_3] · **Trimestre:** 26E2  
-> **Professor:** Wesley Bruno Barbosa Silva · **Aluno:** André Luis Becker · **Sala:** GRLENGR2C2-N2-L1  
-> **Modalidade:** individual · **Data:** 21/ago/2026
+> **Bloco:** Engenharia de Softwares Escaláveis  
+> **Disciplina:** Microsserviços e DevOps com Spring Boot e Spring Cloud [26E3_3]  
+> **Trimestre:** 26E2  
+> **Professor:** Wesley Bruno Barbosa Silva  
+> **Aluno:** André Luis Becker  
+> **Sala:** GRLENGR2C2-N2-L1  
+> **Modalidade:** Individual  
+> **Data:** 21/ago/2026
 
 ### Responsabilidades
 
@@ -192,13 +197,15 @@ O tráfego entre containers roda em texto claro por padrão, o que é adequado a
 bash scripts/gerar-certificados.sh
 ```
 
-Gera uma autoridade certificadora local e um certificado por serviço em `certs/`, que **não é versionado**. As chaves privadas nascem na sua máquina.
+Gera uma autoridade certificadora local e um certificado por serviço em `certs/`, diretório **não versionado**. As chaves privadas permanecem na máquina onde o script é executado.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d --build
 ```
 
-O Gateway e o Eureka permanecem em HTTP: são a fronteira que o navegador acessa, e um certificado autoassinado ali só produziria alertas. Omitir o segundo `-f` volta ao ambiente sem TLS, sem editar arquivo algum.
+O Gateway e o Eureka permanecem em HTTP: são a fronteira que o navegador acessa, e um certificado autoassinado ali só produziria alertas. Perfil validado em execução — PostgreSQL negociando TLSv1.3, MongoDB com handshake em todas as conexões e a chamada entre serviços percorrendo o LoadBalancer sobre TLS.
+
+Para voltar ao ambiente sem TLS, execute `docker compose down` antes de subir novamente: instâncias registradas no modo seguro permanecem no Eureka até a concessão expirar.
 
 ---
 
@@ -232,22 +239,24 @@ Em todos os casos os dados do projeto continuam sendo retornados. O timeout exis
 
 ---
 
-## 📋 Status da entrega
+## 📸 Evidências de execução
 
-| Item | Situação |
+O projeto foi verificado com o ambiente completo no ar. As capturas estão em
+[`docs/evidences/`](docs/evidences/) e aparecem comentadas na seção 9 do
+[relatório técnico](docs/RELATORIO_TP1.md):
+
+| Evidência | O que demonstra |
 |---|---|
-| Arquitetura e módulos | ✅ Estrutura inicial criada |
-| Isolamento de bancos | ✅ Configurado por serviço |
-| Gateway, Eureka e resiliência | ✅ Implementados e **validados em execução** |
-| Containerização | ✅ Seis containers, ordem por healthcheck, processo sem root |
-| Migração PostgreSQL | ✅ Flyway `V1__create_profiles.sql` |
-| Requisições de demonstração | ✅ Arquivo `.http` incluído |
-| Testes automatizados | ✅ 12 testes unitários passando |
-| Decisões arquiteturais | ✅ ADRs em `docs/adr/` |
-| Evidências visuais | ⏳ A capturar após execução |
-| Portas | ✅ Faixa `18xxx` dedicada, publicadas só em `127.0.0.1` |
+| Discovery Server e serviços registrados | Descoberta dinâmica funcionando |
+| Perfil e projeto pelo Gateway | Roteamento pela fronteira única, porta `18080` |
+| `/details` com `AVAILABLE` | Comunicação entre microservices por nome lógico |
+| `/details` com `NOT_FOUND` | Referência inexistente tratada sem abrir o circuito |
+| `/details` com `UNAVAILABLE` | Circuit Breaker degradando sem falha em cascata |
+| Suíte de testes | 12 testes unitários, `BUILD SUCCESS` |
+| `docker compose ps` | Seis containers `healthy` |
 
 ---
+
 
 ## 📁 Estrutura do projeto
 
@@ -280,7 +289,7 @@ microservices-devops-portfolio-TP1/
 
 ## 📄 Relatório técnico
 
-O [relatório técnico](docs/RELATORIO_TP1.md) detalha decisões, cobertura da rúbrica e as evidências a coletar antes da entrega.
+O [relatório técnico](docs/RELATORIO_TP1.md) documenta o problema, a arquitetura, as decisões de projeto e a cobertura da rúbrica, com as nove evidências de execução e a análise dos defeitos encontrados durante a validação.
 
 ## 📜 Licença
 

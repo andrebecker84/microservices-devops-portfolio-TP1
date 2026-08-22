@@ -9,6 +9,11 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
+    # Instancia unica, mas o Eureka ainda tenta replicar com um peer. Sem esta
+    # linha ele usa o default localhost:8761 -- a porta antiga -- e inunda o log
+    # com ERROR de conexao recusada a cada poucos segundos.
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:18761/eureka/}
 
 management:
   endpoints:

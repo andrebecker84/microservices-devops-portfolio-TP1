@@ -4,7 +4,11 @@
 #   bash scripts/gerar-certificados.sh          uma vez, gera certs/
 #   docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d --build
 #
-# Para voltar ao ambiente sem TLS, basta omitir o -f extra. Essa separação é
+# Para voltar ao ambiente sem TLS, use `docker compose down` antes de subir de
+# novo. Apenas omitir o -f não basta: as instâncias registradas no modo TLS
+# anunciam porta segura e permanecem no Eureka até a concessão expirar (~90s).
+# Nesse intervalo o LoadBalancer alterna entre a instância nova e a obsoleta,
+# e metade das chamadas falha com erro de handshake. Essa separação é
 # deliberada: a configuração de referência continua sendo a que já foi validada,
 # e o TLS é um perfil que se ativa por escolha, sem editar arquivo nenhum.
 #
@@ -12,9 +16,10 @@
 # project-service → profile-service. O Gateway e o Eureka permanecem em HTTP,
 # porque são a fronteira que o navegador acessa durante a demonstração.
 #
-# ATENÇÃO — ESTE PERFIL NUNCA FOI EXECUTADO. Os certificados nunca foram gerados
-# e nenhuma das configurações abaixo foi validada em execução. Trate como ponto
-# de partida, não como configuração pronta. O caminho sem TLS é o validado.
+# Validado em execução em 22/ago/2026: PostgreSQL negociando TLSv1.3, MongoDB
+# com handshake TLS em todas as conexões, profile-service atendendo em HTTPS e
+# a chamada project-service → profile-service percorrendo o LoadBalancer sobre
+# TLS. A rota de detalhes respondeu AVAILABLE com o perfil obtido remotamente.
 
 services:
   postgres:
@@ -44,6 +49,11 @@ services:
       - /etc/ssl/portfoliohub/mongo.pem
       - --tlsCAFile
       - /etc/ssl/portfoliohub/ca.crt
+      # Informar a CA faz o mongod exigir certificado DO CLIENTE (TLS mútuo). A
+      # intenção aqui é cifrar o tráfego, não autenticar por certificado — a
+      # autenticação continua sendo por usuário e senha. Sem esta linha, todo
+      # cliente sem certificado próprio é rejeitado, inclusive o healthcheck.
+      - --tlsAllowConnectionsWithoutCertificates
     healthcheck:
       test:
         - CMD-SHELL
@@ -75,6 +85,12 @@ services:
       EUREKA_INSTANCE_SECURE_PORT_ENABLED: "true"
       EUREKA_INSTANCE_SECURE_PORT: "18081"
       EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "false"
+      # O compose base registra por IP (prefer-ip-address). Com TLS isso quebra:
+      # o certificado cobre o NOME do serviço, e o IP do container é dinâmico —
+      # não há como incluí-lo no SAN. Registrar pelo hostname alinha o que o
+      # cliente disca com o que o certificado garante.
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_HOSTNAME: profile-service
       SPRING_SSL_BUNDLE_PEM_SERVIDOR_KEYSTORE_CERTIFICATE: /certs/profile-service.crt
       SPRING_SSL_BUNDLE_PEM_SERVIDOR_KEYSTORE_PRIVATEKEY: /certs/profile-service.key
     healthcheck:

@@ -12,7 +12,7 @@ spring:
       - optional:file:../.env[.properties]
   datasource:
     # Precedencia: variavel de ambiente > valor vindo do .env > default local.
-    url: ${PROFILE_DB_URL:jdbc:postgresql://localhost:5432/${PORTFOLIO_DB_NAME:profile_db}}
+    url: ${PROFILE_DB_URL:jdbc:postgresql://localhost:18432/${PORTFOLIO_DB_NAME:profile_db}}
     username: ${PROFILE_DB_USERNAME:${PORTFOLIO_DB_USER:portfolio}}
     password: ${PROFILE_DB_PASSWORD:${PORTFOLIO_DB_PASSWORD}}
   jpa:

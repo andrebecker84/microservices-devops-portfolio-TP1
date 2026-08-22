@@ -13,7 +13,10 @@ spring:
     # A segunda esta depreciada com nivel `error` desde o Boot 4.0 e e IGNORADA
     # em silencio -- o driver cai no default `mongodb://localhost/test` sem avisar.
     # O bug so aparece quando o host deixa de ser localhost, como dentro do Docker.
-    uri: ${PROJECT_MONGODB_URI:mongodb://localhost:27017/${PORTFOLIO_MONGO_DB:project_db}}
+    # Sem PROJECT_MONGODB_URI definida, a URI e montada a partir do .env: o MongoDB
+    # exige autenticacao, entao o default precisa carregar usuario e senha. Nenhum
+    # valor literal aqui -- tudo vem de variavel.
+    uri: ${PROJECT_MONGODB_URI:mongodb://${PORTFOLIO_MONGO_USER:portfolio}:${PORTFOLIO_MONGO_PASSWORD}@localhost:18017/${PORTFOLIO_MONGO_DB:project_db}?authSource=admin}
 eureka:
   client:
     service-url:

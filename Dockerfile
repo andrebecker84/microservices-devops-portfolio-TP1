@@ -68,13 +68,11 @@ COPY --from=build --chown=portfoliohub:portfoliohub /extraido/application/ ./
 USER portfoliohub
 
 # -XX:MaxRAMPercentage — a JVM enxerga o limite do container, não o da máquina;
-#   sem isso ela dimensiona a heap pela RAM do host e o container morre por OOM.
-# -XX:+AutoCreateSharedArchive — Class Data Sharing sem execução de treino no
-#   build: a primeira inicialização grava o arquivo, as seguintes o reaproveitam
-#   e sobem bem mais rápido. Preferido ao treino em build porque este exigiria
-#   banco disponível durante a construção da imagem.
-ENTRYPOINT ["java", \
-    "-XX:MaxRAMPercentage=75", \
-    "-XX:+AutoCreateSharedArchive", \
-    "-XX:SharedArchiveFile=/tmp/portfoliohub.jsa", \
-    "org.springframework.boot.loader.launch.JarLauncher"]
+#   sem isso ela dimensiona a heap pela RAM do host e o container é encerrado por
+#   esgotamento de memória.
+#
+# Nota: Class Data Sharing (-XX:+AutoCreateSharedArchive) foi testado e removido.
+# O arquivo compartilhado não chegou a ser gravado nem após encerramento limpo do
+# container e, ainda que fosse, viveria na camada gravável — perdida a cada
+# reconstrução da imagem. Manter a flag anunciaria uma otimização inexistente.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
