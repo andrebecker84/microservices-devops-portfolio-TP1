@@ -1,0 +1,36 @@
+# Claude Code — instrumentos locais de trabalho, fora da entrega acadêmica
+.claude/
+CLAUDE.md
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+http-client.private.env.json
+
+# Certificados e chaves TLS geradas localmente por scripts/gerar-certificados.sh
+certs/
+credentials.*
+secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Java/Maven
+target/
+*.class
+
+# Node/dependencies if a future frontend is added
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

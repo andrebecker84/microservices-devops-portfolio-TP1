@@ -1,0 +1,187 @@
+# Ambiente completo do PortfolioHub (DR3-TP1): bancos e os quatro módulos.
+# NÃO compartilha rede, containers ou volumes com outros projetos.
+#
+# Credenciais NUNCA ficam hardcoded: são lidas de variáveis de ambiente.
+# Copie .env.example para .env e defina valores locais (o .env não é versionado).
+#
+#   docker compose up -d --build     sobe tudo
+#   docker compose ps                estado, com healthcheck
+#   docker compose logs -f           logs dos quatro juntos
+#   docker compose stop profile-service   derruba um só (evidência de fallback)
+name: portfoliohub
+
+# Padrão comum aos quatro módulos: mesmo Dockerfile, mudando só o ARG MODULO.
+x-modulo: &modulo
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: "no"
+  networks: [portfoliohub]
+
+x-eureka: &eureka
+  EUREKA_DEFAULT_ZONE: http://discovery-server:18761/eureka/
+  # Dentro da rede do Compose o hostname do container não é resolvível pelos
+  # outros; registrar o IP evita que a descoberta aponte para um nome morto.
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+
+services:
+  # ─── serviços de apoio ─────────────────────────────────────────────────────
+  postgres:
+    image: postgres:18-alpine
+    container_name: portfoliohub-postgres
+    environment:
+      POSTGRES_DB: ${PORTFOLIO_DB_NAME:-profile_db}
+      POSTGRES_USER: ${PORTFOLIO_DB_USER:-portfolio}
+      POSTGRES_PASSWORD: ${PORTFOLIO_DB_PASSWORD:?defina PORTFOLIO_DB_PASSWORD}
+    ports:
+      # 127.0.0.1 e deliberado: sem isso o Docker publica em 0.0.0.0 e o banco
+      # fica acessivel a qualquer maquina da rede local.
+      - "127.0.0.1:18432:5432"
+    volumes:
+      - portfoliohub_pgdata:/var/lib/postgresql
+    networks: [portfoliohub]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:8.0
+    container_name: portfoliohub-mongo
+    environment:
+      # Autenticacao habilitada. So tem efeito num volume vazio: o MongoDB cria
+      # o usuario root apenas na primeira inicializacao do diretorio de dados.
+      MONGO_INITDB_ROOT_USERNAME: ${PORTFOLIO_MONGO_USER:-portfolio}
+      MONGO_INITDB_ROOT_PASSWORD: ${PORTFOLIO_MONGO_PASSWORD:?defina PORTFOLIO_MONGO_PASSWORD}
+    ports:
+      - "127.0.0.1:18017:27017"
+    volumes:
+      - portfoliohub_mongodata:/data/db
+      # A imagem do MongoDB declara DOIS volumes: /data/db e /data/configdb.
+      # Nomear apenas o primeiro não evita o segundo — o Docker o cria assim
+      # mesmo, com nome anônimo em hash, e ninguém depois sabe a quem pertence.
+      # Nomeando ambos, todo volume da máquina tem dono identificável.
+      - portfoliohub_mongoconfig:/data/configdb
+    networks: [portfoliohub]
+    healthcheck:
+      # Autentica usando as variaveis do proprio container: a senha nao aparece
+      # neste arquivo, so a referencia a ela.
+      test: ["CMD-SHELL", "mongosh --quiet -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --eval \"db.adminCommand('ping').ok\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── infraestrutura da arquitetura ─────────────────────────────────────────
+  discovery-server:
+    <<: *modulo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULO: discovery-server
+    container_name: portfoliohub-discovery
+    environment:
+      DISCOVERY_SERVER_PORT: "18761"
+    ports:
+      - "127.0.0.1:18761:18761"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:18761/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # ─── serviços de domínio ───────────────────────────────────────────────────
+  profile-service:
+    <<: *modulo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULO: profile-service
+    container_name: portfoliohub-profile
+    environment:
+      <<: *eureka
+      # Dentro da rede, o banco atende pelo nome do serviço, não por localhost.
+      PROFILE_DB_URL: jdbc:postgresql://postgres:5432/${PORTFOLIO_DB_NAME:-profile_db}
+      PROFILE_DB_USERNAME: ${PORTFOLIO_DB_USER:-portfolio}
+      PROFILE_DB_PASSWORD: ${PORTFOLIO_DB_PASSWORD:?defina PORTFOLIO_DB_PASSWORD}
+      PROFILE_SERVICE_PORT: "18081"
+    ports:
+      # Publicada para a coleção http/ conseguir provar que cada serviço tem
+      # servidor embutido próprio (critério 11). Em produção, remover esta
+      # linha basta para tornar o Gateway a única porta de entrada.
+      - "127.0.0.1:18081:18081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:18081/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  project-service:
+    <<: *modulo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULO: project-service
+    container_name: portfoliohub-project
+    environment:
+      <<: *eureka
+      # authSource=admin porque o usuario root vive no banco admin, ainda que os
+      # dados fiquem em project_db.
+      PROJECT_MONGODB_URI: mongodb://${PORTFOLIO_MONGO_USER:-portfolio}:${PORTFOLIO_MONGO_PASSWORD:?defina PORTFOLIO_MONGO_PASSWORD}@mongo:27017/${PORTFOLIO_MONGO_DB:-project_db}?authSource=admin
+      PROJECT_SERVICE_PORT: "18082"
+    ports:
+      - "127.0.0.1:18082:18082"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:18082/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # ─── fronteira externa ─────────────────────────────────────────────────────
+  api-gateway:
+    <<: *modulo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULO: api-gateway
+    container_name: portfoliohub-gateway
+    environment:
+      <<: *eureka
+      API_GATEWAY_PORT: "18080"
+    ports:
+      - "127.0.0.1:18080:18080"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:18080/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+networks:
+  portfoliohub:
+    driver: bridge
+
+volumes:
+  portfoliohub_pgdata:
+  portfoliohub_mongodata:
+  portfoliohub_mongoconfig:

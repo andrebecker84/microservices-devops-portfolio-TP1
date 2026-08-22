@@ -1,0 +1,436 @@
+LICENÇA DE CÓDIGO VISÍVEL — SOMENTE LEITURA
+Todos os direitos reservados · Uso mediante autorização
+PortfolioHub · DR3-TP1 · Bloco Engenharia de Softwares Escaláveis
+
+Copyright (c) 2026 André Luis Becker. Todos os direitos reservados.
+
+================================================================================
+PREÂMBULO — o que esta licença faz, em português claro
+================================================================================
+
+Este é um trabalho acadêmico com CÓDIGO VISÍVEL (source-available), e não código
+aberto. O repositório é público para que o trabalho possa ser LIDO, ESTUDADO e
+AVALIADO. Publicar o código não o coloca em domínio público, nem o torna livre
+para uso: nenhuma licença de uso, cópia, execução, modificação ou distribuição é
+concedida por este documento, salvo o expressamente descrito abaixo.
+
+  PODE, sem pedir nada a ninguém:
+    · ler, consultar e analisar o código e a documentação nesta página;
+    · citar trechos curtos em trabalho acadêmico ou técnico, com atribuição
+      e indicação da origem.
+
+  PODE, para AVALIAÇÃO ACADÊMICA formal:
+    · o corpo docente e a coordenação da instituição de ensino em que este
+      trabalho foi apresentado podem obter, executar e examinar o Software
+      no que for necessário à avaliação. É para isso que ele existe.
+
+  DEPENDE DE AUTORIZAÇÃO ESCRITA do titular — qualquer outro uso, inclusive:
+    · copiar, baixar, clonar ou reproduzir o Software para uso próprio;
+    · executá-lo, ainda que apenas localmente e sem fim lucrativo;
+    · modificá-lo, adaptá-lo ou dele derivar outro trabalho;
+    · redistribuir, publicar, hospedar ou espelhar o projeto, no todo ou em
+      parte;
+    · empregá-lo em produto, serviço ou atividade com finalidade comercial;
+    · usá-lo como dado de treinamento de modelos de aprendizado de máquina;
+    · apresentar este trabalho, ou derivação dele, como produção acadêmica
+      própria em qualquer instituição de ensino.
+
+Pedir autorização é gratuito e costuma ser respondido: veja a Cláusula 4. A
+restrição existe para preservar a autoria de um percurso acadêmico individual,
+não para dificultar o estudo de quem tem interesse legítimo.
+
+Este preâmbulo resume as cláusulas a seguir e não as substitui. Em caso de
+divergência, prevalece o texto das cláusulas.
+
+================================================================================
+1. DEFINIÇÕES
+================================================================================
+
+1.1. "Software" — o código-fonte dos quatro módulos (discovery-server,
+     api-gateway, profile-service e project-service), a documentação, os
+     diagramas, os registros de decisão arquitetural, a migration do Flyway, os
+     testes automatizados, o arquivo de requisições de demonstração e o
+     docker-compose deste repositório, exceto os Materiais de Terceiros
+     descritos na Cláusula 6.
+
+1.2. "Titular" — André Luis Becker, autor e detentor dos direitos patrimoniais
+     sobre o Software.
+
+1.3. "Você" — a pessoa física ou jurídica que acessa, lê, copia, executa ou de
+     qualquer outro modo interage com o Software, inclusive por meio de agente
+     automatizado sob seu comando.
+
+1.3.1. "Instituição Avaliadora" — a instituição de ensino perante a qual este
+     trabalho foi apresentado como atividade acadêmica, e os agentes que atuam
+     em seu nome na avaliação: docentes, coordenação e banca.
+
+1.4. "Finalidade Comercial" — qualquer uso destinado, direta ou indiretamente,
+     a vantagem comercial ou remuneração, inclusive uso interno por pessoa
+     jurídica em suas atividades produtivas, prestação de serviços a terceiros,
+     incorporação a produto ofertado ao mercado e uso em treinamento de modelos
+     comercializados.
+
+1.5. "Finalidade Não Comercial" — uso pessoal, de pesquisa, de ensino ou de
+     avaliação acadêmica, sem as características do item 1.4.
+
+================================================================================
+2. CONCESSÃO LIMITADA
+================================================================================
+
+2.1. CONCESSÃO GERAL — LEITURA
+
+O Titular concede a Você licença mundial, gratuita, não exclusiva,
+intransferível, não sublicenciável e revogável para:
+
+  a) acessar e ler o código-fonte e a documentação do Software, para fins de
+     estudo, consulta e avaliação técnica;
+  b) citar trechos curtos em trabalho acadêmico, técnico ou jornalístico, desde
+     que com atribuição ao Titular e indicação da origem.
+
+A concessão desta cláusula é de LEITURA. Ela NÃO abrange copiar, baixar, clonar,
+armazenar, executar, compilar, implantar, modificar, adaptar, traduzir,
+descompilar, redistribuir ou de qualquer forma explorar o Software.
+
+2.2. CONCESSÃO ESPECÍFICA — AVALIAÇÃO ACADÊMICA INSTITUCIONAL
+
+O Software foi produzido para ser avaliado. Ficam autorizados, independentemente
+de pedido, o corpo docente, a coordenação, a banca e os demais agentes da
+instituição de ensino perante a qual o trabalho foi apresentado a obter,
+reproduzir, compilar e executar o Software na medida necessária à conferência,
+correção e arguição da entrega.
+
+Esta autorização é limitada a essa finalidade e não abrange redistribuição,
+publicação, uso comercial nem incorporação a outro trabalho.
+
+2.3. RESERVA
+
+Nenhum outro direito é concedido. Todos os direitos não expressamente
+concedidos nesta cláusula permanecem reservados ao Titular, na forma da Lei nº
+9.610/1998 e da Lei nº 9.609/1998.
+
+Na dúvida sobre se um uso pretendido está coberto, presuma que NÃO está e peça
+autorização (Cláusula 4).
+
+2.4. TERMOS DA PLATAFORMA DE HOSPEDAGEM
+
+O Software é publicado em repositório hospedado no GitHub. Os Termos de Serviço
+dessa plataforma concedem a seus usuários, por força do próprio ato de
+publicação, a faculdade de visualizar o repositório e de criar bifurcações
+("forks") dentro da plataforma. Esta licença NÃO revoga o que a plataforma
+concede — não teria como.
+
+O que ela determina é o que Você pode fazer com o conteúdo assim obtido: a
+existência de um fork não amplia a Cláusula 2.1. Executar, modificar,
+redistribuir ou publicar o Software a partir de um fork continua dependendo de
+autorização escrita, e a bifurcação em si não constitui autorização de espécie
+alguma.
+
+================================================================================
+3. RESTRIÇÕES
+================================================================================
+
+Sem autorização prévia e por escrito do Titular, e ressalvada a Cláusula 2.2, é
+vedado:
+
+3.0. REPRODUÇÃO E EXECUÇÃO. Copiar, baixar, clonar, espelhar, armazenar em
+     sistema de recuperação, compilar, instalar, implantar ou executar o
+     Software, no todo ou em parte, ainda que em máquina local, em ambiente
+     privado e sem qualquer proveito econômico.
+
+3.1. Empregar o Software, no todo ou em parte, para Finalidade Comercial.
+
+3.2. Distribuir, publicar, hospedar, disponibilizar em rede, comercializar,
+     alugar, emprestar ou de outro modo transferir o Software a terceiros.
+
+3.3. Modificar, adaptar, traduzir, refatorar ou realizar engenharia reversa do
+     Software, bem como publicar obras derivadas, adaptações ou versões
+     modificadas.
+
+3.4. Sublicenciar o Software ou relicenciá-lo sob outros termos, inclusive sob
+     licenças de código aberto.
+
+3.5. Remover, ocultar ou alterar avisos de autoria, de copyright ou esta
+     licença.
+
+3.6. INTEGRIDADE ACADÊMICA. Apresentar o Software, ou trabalho dele derivado,
+     como produção própria em atividade avaliativa, trabalho de conclusão,
+     processo seletivo ou publicação, em qualquer instituição de ensino.
+     Esta restrição é o principal objetivo desta licença: o Software é o
+     resultado de um percurso acadêmico individual, e sua reapresentação por
+     terceiros como trabalho próprio configura, além de violação contratual,
+     fraude acadêmica perante a instituição envolvida.
+
+3.7. MINERAÇÃO E TREINAMENTO DE MODELOS. Utilizar o Software, no todo ou em
+     parte, como dado de treinamento, ajuste fino ou avaliação de modelos de
+     aprendizado de máquina, bem como incluí-lo em conjunto de dados destinado
+     a esse fim, com ou sem finalidade comercial.
+
+     Reserva declarada de direitos para efeito de coleta automatizada: esta
+     cláusula constitui manifestação expressa e legível por máquina de oposição
+     à extração e à reprodução do Software por rastreadores, coletores e
+     agentes automatizados de qualquer natureza.
+
+================================================================================
+4. AUTORIZAÇÕES EXCEPCIONAIS
+================================================================================
+
+Usos fora do escopo da Cláusula 2 podem ser autorizados, e o pedido é gratuito.
+Deve ser dirigido ao Titular, por escrito, descrevendo o uso pretendido, sua
+extensão e sua finalidade. A autorização, quando concedida, será específica para
+o uso descrito, por prazo determinado quando couber, e não se estende a usos
+posteriores nem a terceiros.
+
+CANAL ÚNICO DE CONTATO — GitHub:
+
+  · Abrir uma issue no repositório oficial do projeto:
+    https://github.com/andrebecker84/microservices-devops-portfolio-TP1/issues
+
+  · Ou entrar em contato pelo perfil do Titular:
+    https://github.com/andrebecker84
+
+O Titular não divulga endereço de correio eletrônico pessoal para esta
+finalidade. Pedidos enviados por outros canais podem não ser respondidos, e a
+ausência de resposta NÃO equivale a autorização tácita: o silêncio deve ser
+interpretado como negativa.
+
+Toda autorização é concedida por escrito e de forma rastreável — na própria
+issue ou em documento assinado. Declarações verbais, capturas de tela e
+mensagens de terceiros não constituem autorização.
+
+================================================================================
+5. VIGÊNCIA E RESCISÃO
+================================================================================
+
+5.1. A licença vigora enquanto Você cumprir estes termos.
+
+5.2. O descumprimento de qualquer cláusula extingue a licença automaticamente,
+     independentemente de notificação, obrigando Você a cessar o uso e destruir
+     as cópias em seu poder.
+
+5.3. A extinção não prejudica os direitos do Titular quanto a violações
+     ocorridas durante a vigência.
+
+================================================================================
+6. MATERIAIS DE TERCEIROS
+================================================================================
+
+O repositório NÃO versiona binários, imagens ou bibliotecas de terceiros: ele os
+declara por referência. Cada um permanece sujeito à licença de seu respectivo
+detentor, que prevalece sobre os termos acima:
+
+  · Bibliotecas e frameworks declarados nos arquivos `pom.xml` — Spring Boot,
+    Spring Cloud, Netflix Eureka, Spring Cloud Gateway, Resilience4j, Flyway,
+    Hibernate, o driver do PostgreSQL, o driver do MongoDB, JUnit e Mockito,
+    entre outros. São licenciados por seus respectivos autores, majoritariamente
+    sob Apache-2.0, MIT e EPL. Esta licença não os alcança e o Maven os obtém do
+    repositório central no momento da compilação.
+
+  · Imagens de container referenciadas em `docker-compose.yml` — `postgres:18-
+    alpine`, distribuída sob a PostgreSQL License, e `mongo:8.0`, distribuída
+    pela MongoDB, Inc. sob a Server Side Public License (SSPL). Nenhuma das duas
+    é redistribuída por este repositório: o arquivo apenas indica a tag, e o
+    download ocorre do registro oficial na máquina de quem executa. Quem for
+    implantar deve observar diretamente os termos da SSPL, notadamente sua
+    seção 13, cujo alcance difere de forma relevante das licenças permissivas.
+
+A concessão da Cláusula 2 recai exclusivamente sobre a contribuição original do
+Titular. Ao reutilizar os Materiais de Terceiros, Você deve observar as licenças
+de origem diretamente.
+
+================================================================================
+7. AUSÊNCIA DE GARANTIA
+================================================================================
+
+O SOFTWARE É FORNECIDO "NO ESTADO EM QUE SE ENCONTRA", SEM GARANTIA DE
+QUALQUER NATUREZA, EXPRESSA OU IMPLÍCITA, INCLUINDO, SEM LIMITAÇÃO, GARANTIAS
+DE COMERCIABILIDADE, ADEQUAÇÃO A FINALIDADE ESPECÍFICA, PRECISÃO E NÃO
+VIOLAÇÃO DE DIREITOS DE TERCEIROS.
+
+Trata-se de trabalho acadêmico, concebido para fins didáticos. Não foi
+submetido a auditoria de segurança nem a homologação para uso produtivo.
+
+================================================================================
+8. LIMITAÇÃO DE RESPONSABILIDADE
+================================================================================
+
+Na máxima extensão permitida pela legislação aplicável, o Titular não responde
+por danos diretos, indiretos, incidentais, especiais, punitivos ou emergentes,
+nem por lucros cessantes, perda de dados ou interrupção de atividades,
+decorrentes do uso ou da impossibilidade de uso do Software, ainda que
+advertido da possibilidade de tais danos.
+
+================================================================================
+9. LEGISLAÇÃO APLICÁVEL E FORO
+================================================================================
+
+Esta licença rege-se pelas leis da República Federativa do Brasil, em especial
+a Lei nº 9.610/1998 (Direitos Autorais) e a Lei nº 9.609/1998 (Proteção da
+Propriedade Intelectual de Programa de Computador).
+
+Fica eleito o foro da comarca de domicílio do Titular para dirimir controvérsias
+oriundas desta licença, com renúncia a qualquer outro, por mais privilegiado
+que seja.
+
+================================================================================
+ANEXO I — AVISO DE PROTEÇÃO DE DADOS (LGPD)
+================================================================================
+
+Este anexo é um AVISO informativo. Não integra a concessão de licença: uma
+licença rege direitos autorais, enquanto a proteção de dados pessoais é regida
+pela Lei nº 13.709/2018 (LGPD), que se aplica por força de lei e não por
+contrato. Os dois assuntos constam do mesmo arquivo por conveniência de quem
+avalia o projeto.
+
+A.1. DADOS CONTIDOS NO REPOSITÓRIO
+     O repositório NÃO contém dados pessoais de terceiros. Não há carga inicial
+     de dados: os bancos sobem vazios, e o único conteúdo de demonstração é o
+     corpo das requisições em `requests/portfoliohub.http`, que usa o nome do
+     próprio Titular e uma descrição genérica de perfil — dado pessoal do
+     próprio autor, publicado por decisão dele.
+
+     As capturas de tela em `docs/evidences/`, exigidas pelo enunciado, registram
+     a execução dessa mesma demonstração e não devem exibir dados de terceiros,
+     credenciais, tokens ou variáveis de ambiente com valores reais.
+
+     O domínio do Software, contudo, é feito de dados pessoais: um perfil reúne
+     nome, apresentação profissional, resumo e localização. Qualquer implantação
+     que receba perfis de pessoas reais passa a tratar dados pessoais, com todas
+     as consequências dos itens seguintes.
+
+A.2. QUEM RESPONDE PELOS DADOS
+     O Titular não opera qualquer instância deste Software em produção e não
+     trata dados pessoais de terceiros por meio dele. Quem implantar o Software
+     e nele inserir dados pessoais assume, para todos os efeitos da LGPD, a
+     posição de CONTROLADOR, respondendo pela base legal do tratamento, pelo
+     atendimento aos direitos dos titulares (art. 18) e pela comunicação de
+     incidentes (art. 48).
+
+A.3. CARACTERÍSTICAS RELEVANTES DA IMPLEMENTAÇÃO
+     Os pontos abaixo descrevem o Software tal como entregue nesta etapa. São
+     limitações conscientes de escopo de uma primeira entrega de arquitetura, e
+     não defeitos ocultos — mas quem for implantar precisa conhecê-los.
+
+     a) AUSÊNCIA DE AUTENTICAÇÃO E AUTORIZAÇÃO. Esta etapa não implementa
+        controle de acesso de espécie alguma. Qualquer requisição que alcance o
+        Gateway pode criar, ler e alterar qualquer perfil. O Software, tal como
+        está, NÃO deve ser exposto à internet nem receber dados pessoais reais.
+
+     b) O GATEWAY NÃO É UMA FRONTEIRA IMPOSTA. O API Gateway é o ponto único de
+        entrada por convenção arquitetural, não por restrição de rede: em
+        execução local, `profile-service` (18081) e `project-service` (18082)
+        atendem diretamente e podem ser chamados sem passar pela porta 18080.
+        Uma implantação real precisa fechar as portas internas, deixando apenas
+        o Gateway acessível.
+
+     c) DADO PESSOAL EM TRÂNSITO ENTRE SERVIÇOS. A rota
+        `GET /api/projects/{id}/details` faz o `project-service` chamar o
+        `profile-service` pela rede para compor a resposta. Nome e apresentação
+        do perfil trafegam nessa chamada. Por padrão isso ocorre em HTTP simples,
+        sem cifragem. O repositório oferece um perfil opcional
+        (`docker-compose.tls.yml`) que cifra JDBC, MongoDB e a chamada entre
+        serviços com uma autoridade certificadora local; ele não está ativo por
+        padrão. Mesmo com ele, o Eureka e o Gateway seguem em HTTP, e uma
+        implantação real precisa proteger também o registro de serviços.
+
+     d) DOIS BANCOS, SEM TRANSAÇÃO COMUM. O padrão Database per Service coloca
+        os dados em dois bancos de tecnologias distintas: PostgreSQL para
+        perfis, MongoDB para projetos. O `project-service` guarda o `profileId`
+        POR VALOR — não existe, nem poderia existir, chave estrangeira entre um
+        banco relacional e um banco de documentos. As consequências sob a LGPD
+        são concretas:
+
+          · a API não expõe exclusão. Perfis admitem apenas criação, consulta e
+            atualização; projetos, apenas criação e consulta. Um pedido de
+            eliminação (art. 18, VI) não tem, tal como o Software está hoje,
+            como ser atendido pela aplicação — dependeria de acesso direto aos
+            bancos;
+          · quando a exclusão for implementada, alcançará os dois bancos sem que
+            nenhuma transação abranja ambos: apagar o perfil no PostgreSQL não
+            removerá do MongoDB os projetos que o referenciam, deixando
+            registros órfãos apontando para uma pessoa;
+          · o inventário de tratamento (art. 37) precisa listar as duas bases,
+            com suas próprias políticas de retenção, backup e acesso;
+          · a eliminação consistente depende de rotina da aplicação — não há
+            garantia do banco a invocar.
+
+        Vale notar o outro lado: o Software distingue deliberadamente um perfil
+        inexistente (`NOT_FOUND`) de um serviço indisponível (`UNAVAILABLE`),
+        de modo que a exclusão de um perfil produz resposta correta, e não erro
+        de infraestrutura.
+
+     e) INFRAESTRUTURA DE DEMONSTRAÇÃO. O `docker-compose.yml` reproduz a entrega
+        em máquina local. Medidas já aplicadas, que devem ser preservadas em
+        qualquer evolução:
+
+          · PostgreSQL e MongoDB exigem autenticação, com credenciais distintas
+            entre si, vindas de variáveis de ambiente e nunca de literais no YAML;
+          · as seis portas são publicadas em `127.0.0.1`, não em `0.0.0.0`, de
+            modo que nenhum serviço fica acessível a outras máquinas da rede;
+          · os quatro módulos rodam como usuário sem privilégio dentro do
+            container, não como root;
+          · a imagem final contém apenas JRE e o jar — sem compilador, sem Maven
+            e sem código-fonte.
+
+        O que permanece impróprio para produção: o tráfego entre containers NÃO é
+        cifrado (item c), e os bancos, embora restritos ao loopback, seguem
+        alcançáveis por qualquer processo da própria máquina.
+
+     f) AUSÊNCIA DE TRILHA DE AUDITORIA E DE POLÍTICA DE RETENÇÃO. Não há
+        registro histórico de alterações: um `PUT` sobrescreve o perfil e o
+        estado anterior se perde. Isso tem um efeito favorável sob a LGPD — não
+        restam cópias residuais de dado pessoal em tabelas de auditoria — mas
+        significa que não existe rastreabilidade de quem alterou o quê, nem
+        política de retenção definida. Uma implantação real precisará escolher
+        conscientemente entre os dois lados desse compromisso.
+
+     g) ENDPOINTS DE OBSERVABILIDADE. O Actuator adota acesso NEGADO por padrão
+        (`management.endpoints.access.default: none`) e abre nominalmente apenas
+        `health` e `info` nos quatro módulos — postura restritiva, registrada
+        aqui a favor do Software. O `api-gateway` abre um terceiro endpoint,
+        `gateway`, que lista a tabela completa de rotas configuradas. Nenhum
+        deles expõe dados pessoais, mas `gateway` revela a topologia interna e
+        convém fechá-lo em implantação real.
+
+A.4. MEDIDAS ESPERADAS DE QUEM IMPLANTAR
+     Definir base legal para o tratamento; implementar autenticação e controle
+     de acesso; cifrar a comunicação entre os serviços e proteger o registro do
+     Eureka; fechar o acesso direto às portas dos serviços e dos bancos,
+     deixando apenas o Gateway exposto; fechar o endpoint `gateway` do Actuator;
+     estabelecer política de retenção;
+     implementar a eliminação, hoje inexistente, com rotina que alcance as DUAS
+     bases e trate os registros órfãos descritos em A.3(d); e manter registro
+     das operações de tratamento (art. 37).
+
+     A autenticação nos bancos, o confinamento das portas ao loopback e a execução
+     sem privilégio de root já foram implementados e constam de A.3(e).
+
+A.5. CONTATO
+     Comunicações sobre dados pessoais relacionadas a este repositório devem
+     ser dirigidas ao Titular pelos canais indicados na Cláusula 4.
+
+================================================================================
+
+NOTA SOBRE A CATEGORIA DESTA LICENÇA
+
+Esta é uma licença PROPRIETÁRIA de código visível (source-available), do tipo
+"todos os direitos reservados, leitura permitida". Não é licença de código
+aberto: não atende à Open Source Definition nem às Quatro Liberdades, e isso é
+deliberado. O GitHub a classifica como "Other".
+
+Equivalentes e referências de mercado para propósitos próximos, em ordem
+crescente de permissividade:
+
+  · Todos os direitos reservados / source-available — ausência de licença de
+    uso, com o código apenas visível. É a categoria desta licença.
+  · Creative Commons BY-NC-ND 4.0 — permite redistribuir sem modificar;
+    concebida para obras editoriais, não para software.
+    https://creativecommons.org/licenses/by-nc-nd/4.0/
+  · PolyForm Noncommercial 1.0.0 — permite uso e modificação sem fim comercial.
+    https://polyformproject.org/licenses/noncommercial/1.0.0/
+  · Business Source License 1.1 — restringe uso em produção e converte-se em
+    licença aberta após prazo determinado.
+    https://mariadb.com/bsl11/
+
+Este documento foi redigido para um projeto acadêmico e não constitui
+aconselhamento jurídico. Para uso com consequências patrimoniais relevantes,
+recomenda-se revisão por profissional habilitado.

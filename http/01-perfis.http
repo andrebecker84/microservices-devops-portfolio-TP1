@@ -1,0 +1,77 @@
+# 01 — Perfis (profile-service · PostgreSQL)
+#
+# Evidência 03: perfil criado e consultado pelo Gateway, na porta 8080.
+# O POST guarda o id numa variável global — não é preciso copiar nada à mão.
+
+### 1 · Criar perfil
+POST {{gateway}}/api/profiles
+Content-Type: application/json
+
+{
+  "name": "André Luis Becker",
+  "headline": "Software Engineer",
+  "summary": "Perfil de demonstração do PortfolioHub para a entrega DR3-TP1.",
+  "location": "Brazil"
+}
+
+> {%
+    client.test("perfil criado", function() {
+        client.assert(response.status === 201, "esperado 201, veio " + response.status);
+        client.assert(response.body.id !== undefined, "resposta sem id");
+    });
+    client.global.set("profileId", response.body.id);
+%}
+
+### 2 · Consultar o perfil criado
+GET {{gateway}}/api/profiles/{{profileId}}
+
+> {%
+    client.test("perfil encontrado", function() {
+        client.assert(response.status === 200, "esperado 200, veio " + response.status);
+    });
+%}
+
+### 3 · Atualizar o perfil
+PUT {{gateway}}/api/profiles/{{profileId}}
+Content-Type: application/json
+
+{
+  "name": "André Luis Becker",
+  "headline": "Software Engineer · Microservices & DevOps",
+  "summary": "Perfil atualizado para demonstrar o PUT do profile-service.",
+  "location": "Rio de Janeiro, Brazil"
+}
+
+> {%
+    client.test("perfil atualizado", function() {
+        client.assert(response.status === 200, "esperado 200, veio " + response.status);
+    });
+%}
+
+### 4 · Perfil inexistente devolve 404
+# Demonstra o ApiExceptionHandler: recurso ausente não vaza stack trace.
+GET {{gateway}}/api/profiles/{{$uuid}}
+
+> {%
+    client.test("inexistente devolve 404", function() {
+        client.assert(response.status === 404, "esperado 404, veio " + response.status);
+    });
+%}
+
+### 5 · Requisição inválida devolve 400
+# 400 e 404 são situações distintas e não foram colapsadas em um erro só:
+# aqui falta o campo obrigatório "name".
+POST {{gateway}}/api/profiles
+Content-Type: application/json
+
+{
+  "headline": "Sem nome, deve falhar na validação",
+  "summary": "Bean Validation deve rejeitar este corpo.",
+  "location": "Brazil"
+}
+
+> {%
+    client.test("corpo invalido devolve 400", function() {
+        client.assert(response.status === 400, "esperado 400, veio " + response.status);
+    });
+%}

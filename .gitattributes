@@ -1,0 +1,15 @@
+# Normaliza fim de linha no repositório e fixa o que depende do formato.
+* text=auto
+
+# Scripts de shell QUEBRAM com CRLF: o interpretador lê o \r como parte do
+# comando e falha com erros crípticos. Precisam de LF mesmo no Windows.
+*.sh text eol=lf
+
+# Já estes são executados pelo Windows e esperam CRLF.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binários: o Git não deve tentar converter nada.
+*.png binary
+*.docx binary
+*.pdf binary

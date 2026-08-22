@@ -1,0 +1,65 @@
+# 02 — Projetos (project-service · MongoDB)
+#
+# Evidência 04: projeto criado e consultado pelo Gateway.
+# Depende de 01-perfis.http ter rodado: usa a variável global {{profileId}}.
+
+### 1 · Criar projeto vinculado ao perfil
+# repositoryUrl é opcional (@Size max 300, sem @NotBlank) e foi omitido de propósito:
+# um placeholder no corpo apareceria no print da evidência 04.
+POST {{gateway}}/api/projects
+Content-Type: application/json
+
+{
+  "profileId": "{{profileId}}",
+  "name": "PortfolioHub",
+  "summary": "Plataforma cloud-native de portfólio profissional.",
+  "technologies": ["Java", "Spring Boot", "Spring Cloud", "PostgreSQL", "MongoDB"],
+  "featured": true
+}
+
+> {%
+    client.test("projeto criado", function() {
+        client.assert(response.status === 201, "esperado 201, veio " + response.status);
+        client.assert(response.body.id !== undefined, "resposta sem id");
+    });
+    client.global.set("projectId", response.body.id);
+%}
+
+### 2 · Criar um segundo projeto, para a listagem não ficar com item único
+POST {{gateway}}/api/projects
+Content-Type: application/json
+
+{
+  "profileId": "{{profileId}}",
+  "name": "InfnetHub",
+  "summary": "Sistema acadêmico distribuído, estudo de bounded contexts.",
+  "technologies": ["Java", "Spring Boot", "PostgreSQL"],
+  "featured": false
+}
+
+### 3 · Listar projetos
+GET {{gateway}}/api/projects
+
+> {%
+    client.test("listagem responde", function() {
+        client.assert(response.status === 200, "esperado 200, veio " + response.status);
+    });
+%}
+
+### 4 · Consultar um projeto específico
+GET {{gateway}}/api/projects/{{projectId}}
+
+> {%
+    client.test("projeto encontrado", function() {
+        client.assert(response.status === 200, "esperado 200, veio " + response.status);
+    });
+%}
+
+### 5 · Projeto inexistente devolve 404
+GET {{gateway}}/api/projects/inexistente-000000
+
+> {%
+    client.test("inexistente devolve 404", function() {
+        client.assert(response.status === 404, "esperado 404, veio " + response.status);
+    });
+%}

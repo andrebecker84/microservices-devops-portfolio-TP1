@@ -1,0 +1,21 @@
+server:
+  port: ${DISCOVERY_SERVER_PORT:18761}
+
+spring:
+  application:
+    name: discovery-server
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    access:
+      default: none
+  endpoint:
+    health:
+      access: unrestricted
+    info:
+      access: unrestricted

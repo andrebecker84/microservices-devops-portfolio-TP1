@@ -1,0 +1,87 @@
+# 03 — Comunicação entre serviços e resiliência
+#
+# Evidências 05 e 06. Esta é a rota que prova o critério 7 da rúbrica.
+#
+# GET /api/projects/{id}/details faz o project-service chamar o profile-service
+# pelo nome lógico (lb://), protegido por timeout (2s conexão / 3s leitura) e
+# Circuit Breaker com fallback.
+#
+# O campo profile.status tem TRÊS valores, e a diferença entre eles é o ponto
+# central da entrega:
+#
+#   AVAILABLE   perfil obtido
+#   NOT_FOUND   o perfil não existe — resposta legítima do serviço remoto
+#   UNAVAILABLE o serviço remoto falhou, demorou ou o circuito está aberto
+#
+# Depende de 01-perfis.http e 02-projetos.http terem rodado.
+
+### 1 · Perfil disponível — evidência 05
+# Com os quatro módulos no ar, profile.status deve ser AVAILABLE.
+GET {{gateway}}/api/projects/{{projectId}}/details
+
+> {%
+    client.test("perfil disponivel", function() {
+        client.assert(response.status === 200, "esperado 200, veio " + response.status);
+        client.assert(response.body.profile.status === "AVAILABLE",
+            "esperado AVAILABLE, veio " + response.body.profile.status);
+    });
+%}
+
+### 2 · Projeto órfão — aponta para um perfil que nunca existiu
+# {{$uuid}} gera um identificador novo a cada execução, garantidamente ausente
+# no PostgreSQL. Serve para separar "dado ausente" de "falha de infraestrutura".
+POST {{gateway}}/api/projects
+Content-Type: application/json
+
+{
+  "profileId": "{{$uuid}}",
+  "name": "Projeto órfão",
+  "summary": "Criado para demonstrar a distinção entre NOT_FOUND e UNAVAILABLE.",
+  "technologies": ["Java"],
+  "featured": false
+}
+
+> {%
+    client.global.set("orfaoId", response.body.id);
+%}
+
+### 3 · Perfil inexistente — status NOT_FOUND, com o profile-service NO AR
+# O 404 remoto é tratado dentro do ProfileDirectoryClient e NÃO chega ao Circuit
+# Breaker: perfil que não existe é resposta correta do serviço, não falha dele.
+# Tratá-lo como indisponibilidade abriria o circuito por causa de dado inválido,
+# penalizando um serviço saudável.
+GET {{gateway}}/api/projects/{{orfaoId}}/details
+
+> {%
+    client.test("perfil inexistente e NOT_FOUND, nao UNAVAILABLE", function() {
+        client.assert(response.status === 200, "esperado 200, veio " + response.status);
+        client.assert(response.body.profile.status === "NOT_FOUND",
+            "esperado NOT_FOUND, veio " + response.body.profile.status);
+    });
+%}
+
+###
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │  PARE O profile-service AGORA (Ctrl+C no terminal 2) antes do passo 4.  │
+# │  Deixe os outros três módulos rodando.                                  │
+# └─────────────────────────────────────────────────────────────────────────┘
+
+### 4 · Serviço fora do ar — status UNAVAILABLE — evidência 06
+# Os dados do projeto continuam sendo devolvidos: a falha do profile-service não
+# derruba a rota. É a falha em cascata sendo evitada, sem esconder a condição real.
+GET {{gateway}}/api/projects/{{projectId}}/details
+
+> {%
+    client.test("servico fora do ar e UNAVAILABLE", function() {
+        client.assert(response.status === 200,
+            "a rota deveria responder 200 mesmo com o profile-service fora, veio " + response.status);
+        client.assert(response.body.profile.status === "UNAVAILABLE",
+            "esperado UNAVAILABLE, veio " + response.body.profile.status);
+        client.assert(response.body.project.name !== undefined,
+            "os dados do projeto deveriam continuar presentes no fallback");
+    });
+%}
+
+###
+# Suba o profile-service de novo antes de seguir. O circuito leva alguns
+# segundos para fechar; repita o passo 1 até voltar a AVAILABLE.

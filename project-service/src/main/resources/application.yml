@@ -1,0 +1,43 @@
+server:
+  port: ${PROJECT_SERVICE_PORT:18082}
+spring:
+  application:
+    name: project-service
+  # Mesmo mecanismo do profile-service: le o .env da raiz, se existir.
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../.env[.properties]
+  mongodb:
+    # ATENCAO: e `spring.mongodb.uri`, nao `spring.data.mongodb.uri`.
+    # A segunda esta depreciada com nivel `error` desde o Boot 4.0 e e IGNORADA
+    # em silencio -- o driver cai no default `mongodb://localhost/test` sem avisar.
+    # O bug so aparece quando o host deixa de ser localhost, como dentro do Docker.
+    uri: ${PROJECT_MONGODB_URI:mongodb://localhost:27017/${PORTFOLIO_MONGO_DB:project_db}}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:18761/eureka/}
+portfoliohub:
+  profile-client:
+    # Converte lentidao do profile-service em falha, para o Circuit Breaker poder agir.
+    # http por padrao; https quando o perfil TLS do compose esta ativo.
+    scheme: ${PROFILE_CLIENT_SCHEME:http}
+    connect-timeout: ${PROFILE_CLIENT_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PROFILE_CLIENT_READ_TIMEOUT:3s}
+resilience4j:
+  circuitbreaker:
+    instances:
+      profileService:
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+management:
+  endpoints:
+    access:
+      default: none
+  endpoint:
+    health:
+      access: unrestricted
+    info:
+      access: unrestricted

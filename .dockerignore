@@ -1,0 +1,38 @@
+# Mantem o contexto de build pequeno e impede que segredo ou artefato local
+# entre na imagem. Espelha o .gitignore no que importa para o build.
+
+.env
+.env.*
+!.env.example
+http-client.private.env.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+target/
+**/target/
+.run/
+
+.git/
+.gitignore
+.idea/
+.vscode/
+.claude/
+CLAUDE.md
+
+docs/
+http/
+*.md
+run.cmd
+run.sh
+run-services.ps1
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Excecao deliberada: as regras *.key/*.pem acima barrariam os certificados,
+# mas as imagens precisam deles. Continuam fora do Git pelo .gitignore.
+!certs/
+!certs/**

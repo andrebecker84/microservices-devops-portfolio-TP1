@@ -1,0 +1,38 @@
+# 00 — Infraestrutura no ar
+#
+# Confirma que os quatro módulos subiram e se registraram no Eureka.
+# Evidências 01 e 02. Rode antes de qualquer outro arquivo desta pasta.
+#
+# Selecione o ambiente "local" (canto superior direito no IntelliJ) antes de executar.
+
+### Dashboard do Eureka — abra no navegador para a evidência 01
+GET {{eureka}}/
+
+### Serviços registrados, em JSON — confirma a evidência 02 sem depender da tela
+# Devem aparecer API-GATEWAY, PROFILE-SERVICE e PROJECT-SERVICE, todos com status UP.
+GET {{eureka}}/eureka/apps
+Accept: application/json
+
+> {%
+    client.test("os tres servicos estao registrados", function() {
+        client.assert(response.status === 200, "Eureka nao respondeu 200");
+        var registrados = JSON.stringify(response.body);
+        ["API-GATEWAY", "PROFILE-SERVICE", "PROJECT-SERVICE"].forEach(function(nome) {
+            client.assert(registrados.indexOf(nome) !== -1, nome + " nao esta registrado");
+        });
+    });
+%}
+
+### Saúde do Discovery Server
+GET {{eureka}}/actuator/health
+
+### Saúde do API Gateway
+GET {{gateway}}/actuator/health
+
+### Saúde do profile-service — porta interna, só para diagnóstico
+# O acesso normal é pelo Gateway; esta chamada existe para provar que o serviço
+# tem servidor embutido próprio (critério 11 da rúbrica).
+GET {{profileService}}/actuator/health
+
+### Saúde do project-service — porta interna, só para diagnóstico
+GET {{projectService}}/actuator/health

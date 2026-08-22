@@ -1,0 +1,36 @@
+server:
+  port: ${API_GATEWAY_PORT:18080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: profile-service
+              uri: lb://profile-service
+              predicates:
+                - Path=/api/profiles/**
+            - id: project-service
+              uri: lb://project-service
+              predicates:
+                - Path=/api/projects/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:18761/eureka/}
+
+management:
+  endpoints:
+    access:
+      default: none
+  endpoint:
+    health:
+      access: unrestricted
+    info:
+      access: unrestricted
+    gateway:
+      access: unrestricted

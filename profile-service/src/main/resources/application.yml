@@ -1,0 +1,34 @@
+server:
+  port: ${PROFILE_SERVICE_PORT:18081}
+spring:
+  application:
+    name: profile-service
+  # Le o .env da raiz do projeto, se existir. O primeiro caminho atende a execucao
+  # a partir da raiz; o segundo, a partir do diretorio do modulo (mvn -pl ...).
+  # Ambos sao opcionais: variaveis de ambiente continuam funcionando sem o arquivo.
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../.env[.properties]
+  datasource:
+    # Precedencia: variavel de ambiente > valor vindo do .env > default local.
+    url: ${PROFILE_DB_URL:jdbc:postgresql://localhost:5432/${PORTFOLIO_DB_NAME:profile_db}}
+    username: ${PROFILE_DB_USERNAME:${PORTFOLIO_DB_USER:portfolio}}
+    password: ${PROFILE_DB_PASSWORD:${PORTFOLIO_DB_PASSWORD}}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:18761/eureka/}
+management:
+  endpoints:
+    access:
+      default: none
+  endpoint:
+    health:
+      access: unrestricted
+    info:
+      access: unrestricted
