@@ -11,6 +11,10 @@
 # O que passa a ser cifrado: JDBC → PostgreSQL, driver → MongoDB e a chamada
 # project-service → profile-service. O Gateway e o Eureka permanecem em HTTP,
 # porque são a fronteira que o navegador acessa durante a demonstração.
+#
+# ATENÇÃO — ESTE PERFIL NUNCA FOI EXECUTADO. Os certificados nunca foram gerados
+# e nenhuma das configurações abaixo foi validada em execução. Trate como ponto
+# de partida, não como configuração pronta. O caminho sem TLS é o validado.
 
 services:
   postgres:
@@ -65,6 +69,12 @@ services:
         -Djavax.net.ssl.trustStoreType=PKCS12
       SERVER_SSL_ENABLED: "true"
       SERVER_SSL_BUNDLE: servidor
+      # Com HTTPS ativo, o registro no Eureka precisa anunciar a porta segura;
+      # sem isto o LoadBalancer não resolve `https://profile-service` e a chamada
+      # do project-service falha mesmo com o certificado correto.
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT: "18081"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "false"
       SPRING_SSL_BUNDLE_PEM_SERVIDOR_KEYSTORE_CERTIFICATE: /certs/profile-service.crt
       SPRING_SSL_BUNDLE_PEM_SERVIDOR_KEYSTORE_PRIVATEKEY: /certs/profile-service.key
     healthcheck:

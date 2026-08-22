@@ -26,9 +26,12 @@ docs/
 http/
 *.md
 run.cmd
-run.sh
 run-services.ps1
+scripts/
+docker/
+.gitattributes
 docker-compose.yml
+docker-compose.tls.yml
 Dockerfile
 .dockerignore
 
